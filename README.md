@@ -1,151 +1,183 @@
-# Android 贪吃蛇游戏
+# 🐍 Android 贪吃蛇游戏
 
-这是一个基于WebView的Android贪吃蛇游戏，使用HTML5 Canvas和JavaScript实现游戏逻辑，通过Android WebView进行展示。
+一个基于HTML5 Canvas的Android贪吃蛇游戏，具有现代化的UI设计和优化的触摸控制系统。
 
-## 项目特性
+## ✨ 特性
 
-- 🐍 经典的贪吃蛇游戏玩法
-- 📱 专为Android设备优化的触摸控制
-- 🎮 支持触摸手势和虚拟按键控制
-- 🏆 分数记录和最高分保存
-- 🎨 现代化的UI设计
-- 📊 实时分数和蛇长度显示
-- ⏸️ 暂停/继续功能
-- 🔄 游戏重启功能
+- 🎮 **完整游戏逻辑** - 经典的贪吃蛇游戏玩法
+- 🎯 **智能方向控制** - 允许反向移动，忽略相同方向
+- 📱 **触摸优化** - 支持滑动和按钮双重控制
+- 🎨 **响应式设计** - 适配不同屏幕尺寸
+- 🔧 **实时状态显示** - 当前方向按钮高亮
+- 📊 **分数系统** - 得分记录和最高分保存
 
-## 项目结构
+## 🎮 游戏截图
+
+![游戏界面](screenshots/gameplay.png)
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Android Studio Arctic Fox 或更高版本
+- Android SDK 33+
+- JDK 17
+- Gradle 8.0+
+
+### 安装步骤
+
+1. **克隆项目**
+   ```bash
+   git clone https://github.com/yourusername/AndroidSnakeGame.git
+   cd AndroidSnakeGame
+   ```
+
+2. **构建APK**
+   ```bash
+   ./gradlew clean assembleDebug
+   ```
+
+3. **安装到设备**
+   ```bash
+   adb install app/build/outputs/apk/debug/app-debug.apk
+   ```
+
+4. **启动游戏**
+   ```bash
+   adb shell am start -n com.example.snakegame/.MainActivity
+   ```
+
+## 🎯 游戏控制
+
+### 方向控制规则
+
+| 当前方向 | 上键 | 下键 | 左键 | 右键 |
+|---------|------|------|------|------|
+| **向上** | ❌ 不变 | ✅ 切换 | ✅ 切换 | ✅ 切换 |
+| **向下** | ✅ 切换 | ❌ 不变 | ✅ 切换 | ✅ 切换 |
+| **向左** | ✅ 切换 | ✅ 切换 | ❌ 不变 | ✅ 切换 |
+| **向右** | ✅ 切换 | ✅ 切换 | ✅ 切换 | ❌ 不变 |
+
+### 控制方式
+
+- **触摸滑动** - 在画布上滑动控制方向
+- **方向按钮** - 点击方向按钮控制
+- **键盘控制** - 使用方向键控制（如果连接键盘）
+
+## 🏗️ 项目结构
 
 ```
 AndroidSnakeGame/
 ├── app/
 │   ├── src/main/
+│   │   ├── assets/
+│   │   │   └── android_snake_game3.html    # 游戏主文件
 │   │   ├── java/com/example/snakegame/
-│   │   │   └── MainActivity.java          # 主Activity，负责WebView配置
-│   │   ├── res/
-│   │   │   ├── layout/
-│   │   │   │   └── activity_main.xml      # 主界面布局
-│   │   │   ├── values/
-│   │   │   │   ├── colors.xml             # 颜色资源
-│   │   │   │   ├── strings.xml            # 字符串资源
-│   │   │   │   └── themes.xml             # 主题样式
-│   │   │   └── drawable/                  # 图标资源
-│   │   └── assets/
-│   │       └── android_snake_game3.html   # 游戏HTML文件
-│   └── build.gradle.kts                   # 应用级构建配置
-├── build.gradle.kts                       # 项目级构建配置
-├── settings.gradle.kts                    # 项目设置
-└── gradle/                                # Gradle包装器
+│   │   │   └── MainActivity.java           # Android主活动
+│   │   └── res/                            # 资源文件
+│   └── build.gradle.kts                    # 应用级构建配置
+├── build.gradle.kts                        # 项目级构建配置
+├── gradle.properties                       # Gradle配置
+├── settings.gradle.kts                     # 项目设置
+├── VERSION.md                              # 版本说明
+└── README.md                               # 项目说明
 ```
 
-## 技术架构
+## 🔧 技术栈
 
-- **前端**: HTML5 + CSS3 + JavaScript (ES6+)
-- **游戏引擎**: 原生JavaScript游戏循环
-- **图形渲染**: HTML5 Canvas 2D
-- **Android集成**: WebView + 原生Java代码
-- **触摸控制**: 触摸事件 + 手势识别
-- **数据存储**: LocalStorage (Web) + SharedPreferences (Android)
+- **前端**: HTML5 Canvas, JavaScript ES6+, CSS3
+- **Android**: Java, WebView, Gradle
+- **构建工具**: Android Gradle Plugin 8.0.2
+- **目标平台**: Android 5.0+ (API 21+)
 
-## 运行要求
+## 📱 兼容性
 
-- Android Studio Hedgehog | 2023.1.1 或更高版本
-- Android SDK 24 (API Level 24) 或更高
-- Android Gradle Plugin 8.2.2
-- Gradle 8.2 或更高版本
+- **最低版本**: Android 5.0 (API 21)
+- **目标版本**: Android 13 (API 33)
+- **推荐版本**: Android 8.0+ (API 26+)
 
-## 安装和运行
+## 🎨 自定义
 
-### 1. 克隆项目
-```bash
-git clone <repository-url>
-cd AndroidSnakeGame
+### 修改游戏速度
+在HTML文件中调整 `gameSpeed` 变量：
+```javascript
+this.gameSpeed = 150; // 数值越小越快
 ```
 
-### 2. 在Android Studio中打开
-- 启动Android Studio
-- 选择 "Open an existing Android Studio project"
-- 导航到项目目录并选择
+### 修改网格大小
+调整 `gridSize` 变量：
+```javascript
+this.gridSize = 20; // 像素大小
+```
 
-### 3. 同步项目
-- 等待Gradle同步完成
-- 如果出现依赖问题，点击 "Sync Now"
+### 修改颜色主题
+在CSS中自定义颜色变量：
+```css
+:root {
+    --primary-color: #FFD700;
+    --secondary-color: #32CD32;
+    --background-color: #000;
+}
+```
 
-### 4. 运行应用
-- 连接Android设备或启动模拟器
-- 点击 "Run" 按钮 (绿色三角形)
-- 选择目标设备并运行
-
-## 游戏控制
-
-### 触摸控制
-- **滑动**: 在屏幕上滑动来控制蛇的方向
-- **点击**: 点击按钮进行游戏操作
-
-### 虚拟按键
-- **开始游戏**: 开始新游戏
-- **暂停/继续**: 暂停或继续游戏
-- **重新开始**: 重置游戏状态
-
-## 游戏规则
-
-1. 控制蛇移动收集食物
-2. 每吃一个食物，蛇身增长，分数增加
-3. 避免撞到墙壁或自己的身体
-4. 游戏结束时会显示最终分数和蛇的长度
-5. 支持最高分记录
-
-## 自定义配置
-
-### 修改游戏参数
-在 `android_snake_game3.html` 文件中可以调整：
-- 游戏速度 (`gameSpeed`)
-- 网格大小 (`tileCountX`, `tileCountY`)
-- 颜色主题
-- 音效设置
-
-### 修改Android配置
-- 在 `MainActivity.java` 中调整WebView设置
-- 在 `themes.xml` 中自定义应用主题
-- 在 `build.gradle.kts` 中修改应用配置
-
-## 故障排除
+## 🐛 问题排查
 
 ### 常见问题
 
-1. **编译错误**
-   - 确保Android Studio版本兼容
-   - 检查Gradle版本
-   - 清理并重新构建项目
+1. **构建失败**
+   - 检查JDK版本是否为17
+   - 确认Android SDK版本
+   - 清理项目：`./gradlew clean`
 
-2. **WebView问题**
-   - 确保设备支持WebView
-   - 检查JavaScript是否启用
-   - 查看Logcat中的错误信息
+2. **触摸不响应**
+   - 检查设备触摸权限
+   - 查看控制台日志
+   - 确认WebView设置
 
-3. **触摸控制不响应**
-   - 检查触摸事件监听器
-   - 确保WebView正确配置
-   - 测试不同设备的触摸灵敏度
+3. **游戏卡顿**
+   - 降低游戏速度
+   - 检查设备性能
+   - 关闭其他应用
 
 ### 调试模式
-WebView调试已启用，可以通过Chrome DevTools进行调试：
-1. 在Chrome中访问 `chrome://inspect`
-2. 选择你的应用
-3. 点击 "inspect" 开始调试
 
-## 贡献
+启用详细日志：
+```javascript
+console.log('方向设置:', direction);
+console.log('触摸事件:', event);
+```
 
-欢迎提交Issue和Pull Request来改进这个项目！
+## 📝 更新日志
 
-## 许可证
+查看 [VERSION.md](VERSION.md) 了解详细的版本历史。
 
-本项目采用MIT许可证 - 详见LICENSE文件
+## 🤝 贡献
 
-## 更新日志
+欢迎提交Issue和Pull Request！
 
-### v1.0.0
-- 初始版本发布
-- 基础贪吃蛇游戏功能
-- Android WebView集成
-- 触摸控制支持
-- 分数记录系统
+### 贡献指南
+
+1. Fork 项目
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+
+## 🙏 致谢
+
+- HTML5 Canvas API
+- Android WebView
+- 开源社区
+
+## 📞 联系方式
+
+- 项目链接: [https://github.com/yourusername/AndroidSnakeGame](https://github.com/yourusername/AndroidSnakeGame)
+- 问题反馈: [Issues](https://github.com/yourusername/AndroidSnakeGame/issues)
+
+---
+
+⭐ 如果这个项目对你有帮助，请给它一个星标！
