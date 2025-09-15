@@ -266,6 +266,32 @@
             background: #333;
             color: white;
         }
+        
+        .vibration-selector {
+            text-align: center;
+            margin: 8px 0;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .vibration-selector label {
+            margin-right: 8px;
+            color: #87CEEB;
+        }
+        
+        .vibration-selector input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #FFD700;
+        }
+        
+        .vibration-label {
+            color: #87CEEB;
+            font-size: 0.9em;
+        }
 
         @media (max-width: 480px) {
             .title {
@@ -305,7 +331,8 @@
 </head>
 <body>
     <div class="game-header">
-        <div class="title">🐍 贪吃蛇</div>
+        <div class="title">🐍 贪吃蛇 - 穿墙版</div>
+        <div class="subtitle">💫 可以穿过边界从对面滑出</div>
         <div class="score-display">
             <div class="score-item">分数: <span class="score-value" id="currentScore">0</span></div>
             <div class="score-item">最高: <span class="score-value" id="highScore">0</span></div>
@@ -332,6 +359,12 @@
                 <option value="100">快速</option>
                 <option value="80">极速</option>
             </select>
+        </div>
+        
+        <div class="vibration-selector">
+            <label for="vibrationToggle">振动反馈:</label>
+            <input type="checkbox" id="vibrationToggle" checked>
+            <span class="vibration-label">启用触觉反馈</span>
         </div>
 
         <div class="direction-controls">
@@ -386,6 +419,10 @@
                 this.gamePaused = false;
                 this.gameSpeed = 150;
                 this.gameLoop = null;
+                
+                // 添加防抖机制
+                this.lastDirectionChange = 0;
+                this.directionChangeCooldown = 50; // 50ms冷却时间
                 
                 this.initControls();
                 this.updateDisplay();
@@ -472,6 +509,9 @@
                     btn.style.transform = 'scale(1.1)';
                     btn.style.boxShadow = '0 0 20px rgba(255, 215, 0, 0.8)';
                     
+                    // 添加振动反馈
+                    this.vibrateDirectionButton(direction);
+                    
                     setTimeout(() => {
                         btn.style.background = 'rgba(255, 255, 255, 0.2)';
                         btn.style.transform = 'scale(1)';
@@ -510,6 +550,28 @@
                 document.getElementById('speedSelect').addEventListener('change', (e) => {
                     this.gameSpeed = parseInt(e.target.value);
                 });
+                
+                // 振动开关
+                const vibrationToggle = document.getElementById('vibrationToggle');
+                if (vibrationToggle) {
+                    // 从本地存储加载振动偏好
+                    const savedVibration = localStorage.getItem('snakeVibrationEnabled');
+                    if (savedVibration !== null) {
+                        vibrationToggle.checked = savedVibration === 'true';
+                    }
+                    
+                    // 监听振动开关变化
+                    vibrationToggle.addEventListener('change', (e) => {
+                        const enabled = e.target.checked;
+                        localStorage.setItem('snakeVibrationEnabled', enabled);
+                        console.log(`振动反馈: ${enabled ? '启用' : '禁用'}`);
+                        
+                        // 如果启用振动，给一个测试振动
+                        if (enabled && navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    });
+                }
                 
                 // 键盘控制
                 document.addEventListener('keydown', (e) => {
@@ -583,18 +645,26 @@
                         if (deltaX > 0) {
                             console.log('识别到向右滑动');
                             this.setDirection('right');
+                            // 添加振动反馈
+                            this.vibrateDirectionButton('right');
                         } else {
                             console.log('识别到向左滑动');
                             this.setDirection('left');
+                            // 添加振动反馈
+                            this.vibrateDirectionButton('left');
                         }
                     } else {
                         // 垂直滑动
                         if (deltaY > 0) {
                             console.log('识别到向下滑动');
                             this.setDirection('down');
+                            // 添加振动反馈
+                            this.vibrateDirectionButton('down');
                         } else {
                             console.log('识别到向上滑动');
                             this.setDirection('up');
+                            // 添加振动反馈
+                            this.vibrateDirectionButton('up');
                         }
                     }
                     
@@ -607,15 +677,19 @@
                 switch(e.key) {
                     case 'ArrowUp':
                         this.setDirection('up');
+                        this.vibrateDirectionButton('up');
                         break;
                     case 'ArrowDown':
                         this.setDirection('down');
+                        this.vibrateDirectionButton('down');
                         break;
                     case 'ArrowLeft':
                         this.setDirection('left');
+                        this.vibrateDirectionButton('left');
                         break;
                     case 'ArrowRight':
                         this.setDirection('right');
+                        this.vibrateDirectionButton('right');
                         break;
                     case ' ':
                         this.togglePause();
@@ -631,18 +705,43 @@
                     return;
                 }
                 
-                // 游戏未运行时也允许设置方向，以便游戏开始时使用
-                if (this.gamePaused) {
-                    console.log('游戏已暂停，忽略方向输入');
-                    return;
-                }
-                
+                // 定义方向映射（移到前面）
                 const directions = {
                     'up': {x: 0, y: -1},
                     'down': {x: 0, y: 1},
                     'left': {x: -1, y: 0},
                     'right': {x: 1, y: 0}
                 };
+                
+                // 游戏未运行时也允许设置方向，以便游戏开始时使用
+                if (this.gamePaused) {
+                    console.log('游戏已暂停，忽略方向输入');
+                    return;
+                }
+                
+                // 防抖检查 - 防止快速连续按键
+                const now = Date.now();
+                if (now - this.lastDirectionChange < this.directionChangeCooldown) {
+                    console.log(`方向变化过快，忽略: ${dir} (冷却中)`);
+                    return;
+                }
+                this.lastDirectionChange = now;
+                
+                // 额外保护：防止在得分后立即反向移动
+                if (this.snake.length > 1) {
+                    const currentDir = this.direction;
+                    const newDir = directions[dir];
+                    
+                    // 检查是否为反向移动
+                    if ((currentDir.x === 1 && newDir.x === -1) || // 右→左
+                        (currentDir.x === -1 && newDir.x === 1) || // 左→右
+                        (currentDir.y === 1 && newDir.y === -1) || // 下→上
+                        (currentDir.y === -1 && newDir.y === 1)) { // 上→下
+                        
+                        console.log(`阻止反向移动: 当前方向(${currentDir.x}, ${currentDir.y}) → 新方向(${newDir.x}, ${newDir.y})`);
+                        return;
+                    }
+                }
                 
                 const newDirection = directions[dir];
                 
@@ -681,8 +780,7 @@
                     return;
                 }
                 
-                // 方向有效，立即更新
-                this.direction = newDirection;
+                // 方向有效，设置到nextDirection等待下一帧更新
                 this.nextDirection = newDirection;
                 console.log(`方向设置成功: 从 ${currentDirName} 转向 ${newDirName}`);
             }
@@ -756,9 +854,15 @@
             }
             
             update() {
-                // 更新方向（只有在方向确实改变时才更新）
+                // 改进的方向更新逻辑 - 只在实际改变方向时才重置nextDirection
                 if (this.nextDirection.x !== 0 || this.nextDirection.y !== 0) {
-                    this.direction = {...this.nextDirection};
+                    // 检查新方向是否与当前方向不同
+                    if (this.direction.x !== this.nextDirection.x || this.direction.y !== this.nextDirection.y) {
+                        this.direction = {...this.nextDirection};
+                        console.log(`方向已更新: (${this.direction.x}, ${this.direction.y})`);
+                    }
+                    // 只有在应用了方向变化后才重置nextDirection
+                    this.nextDirection = {x: 0, y: 0};
                 }
                 
                 if (this.direction.x === 0 && this.direction.y === 0) return;
@@ -769,21 +873,24 @@
                     y: this.snake[0].y + this.direction.y
                 };
                 
-                // 检查边界碰撞
-                if (head.x < 0 || head.x >= this.tileCountX || 
-                    head.y < 0 || head.y >= this.tileCountY) {
-                    console.log(`边界碰撞: x=${head.x}, y=${head.y}, 边界: ${this.tileCountX}x${this.tileCountY}`);
-                    this.gameOver();
-                    return;
+                // 实现穿墙效果 - 蛇可以穿过边界从对面滑出
+                if (head.x < 0) {
+                    head.x = this.tileCountX - 1; // 从右边滑出
+                    console.log(`穿墙: 从左边穿出，在右边出现 x=${head.x}, y=${head.y}`);
+                } else if (head.x >= this.tileCountX) {
+                    head.x = 0; // 从左边滑出
+                    console.log(`穿墙: 从右边穿出，在左边出现 x=${head.x}, y=${head.y}`);
                 }
                 
-                // 检查自身碰撞
-                if (this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-                    console.log('自身碰撞');
-                    this.gameOver();
-                    return;
+                if (head.y < 0) {
+                    head.y = this.tileCountY - 1; // 从下边滑出
+                    console.log(`穿墙: 从上边穿出，在下边出现 x=${head.x}, y=${head.y}`);
+                } else if (head.y >= this.tileCountY) {
+                    head.y = 0; // 从上边滑出
+                    console.log(`穿墙: 从上边穿出，在上边出现 x=${head.x}, y=${head.y}`);
                 }
                 
+                // 先添加蛇头
                 this.snake.unshift(head);
                 
                 // 检查是否吃到食物
@@ -794,7 +901,26 @@
                     // 播放吃食物音效（如果需要）
                     this.playEatSound();
                 } else {
+                    // 如果没吃到食物，删除尾部
                     this.snake.pop();
+                }
+                
+                // 检查自身碰撞 - 在蛇头添加后检查
+                const collisionSegment = this.snake.find((segment, index) => {
+                    // 跳过蛇头（index === 0），只检查与蛇身的碰撞
+                    return index > 0 && segment.x === head.x && segment.y === head.y;
+                });
+                
+                if (collisionSegment) {
+                    console.log(`🚨 自身碰撞检测触发！`);
+                    console.log(`蛇头位置: (${head.x}, ${head.y})`);
+                    console.log(`碰撞段位置: (${collisionSegment.x}, ${collisionSegment.y})`);
+                    console.log(`蛇身长度: ${this.snake.length}`);
+                    console.log(`当前方向: (${this.direction.x}, ${this.direction.y})`);
+                    console.log(`蛇身数组:`, this.snake.map((seg, i) => `[${i}]:(${seg.x},${seg.y})`));
+                    console.log(`食物位置: (${this.food.x}, ${this.food.y})`);
+                    this.gameOver();
+                    return;
                 }
             }
             
@@ -995,6 +1121,46 @@
                     this.setDirection('up');
                     console.log('测试：设置向上');
                 }, 500);
+            }
+            
+            // 方向按钮振动反馈方法
+            vibrateDirectionButton(direction) {
+                // 检查振动开关状态
+                const vibrationToggle = document.getElementById('vibrationToggle');
+                if (!vibrationToggle || !vibrationToggle.checked) {
+                    return; // 振动功能被禁用
+                }
+                
+                if (!navigator.vibrate) {
+                    console.log('设备不支持振动功能');
+                    return;
+                }
+                
+                // 根据不同方向设置不同的振动模式
+                let vibrationPattern;
+                switch (direction) {
+                    case 'up':
+                        vibrationPattern = [30, 20, 30]; // 上：短-短-短
+                        break;
+                    case 'down':
+                        vibrationPattern = [50, 30, 50]; // 下：长-短-长
+                        break;
+                    case 'left':
+                        vibrationPattern = [40, 40]; // 左：中-中
+                        break;
+                    case 'right':
+                        vibrationPattern = [60, 20, 60]; // 右：长-短-长
+                        break;
+                    default:
+                        vibrationPattern = [30]; // 默认短振动
+                }
+                
+                try {
+                    navigator.vibrate(vibrationPattern);
+                    console.log(`振动反馈: ${direction}, 模式: [${vibrationPattern.join(', ')}]`);
+                } catch (error) {
+                    console.warn('振动反馈失败:', error);
+                }
             }
             
             // 音效方法（占位符，可以添加Web Audio API实现）
