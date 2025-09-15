@@ -153,3 +153,4 @@ adb shell am start -n com.example.snakegame/.MainActivity
 **发布日期**: 2024-08-19  
 **状态**: ✅ 稳定版本  
 **兼容性**: Android 5.0+ (API 21+)
+**作者**：AI-Claude
